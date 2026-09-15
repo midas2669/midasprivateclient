@@ -1,7 +1,7 @@
 package eaglercraft.client.gui;
 
+import eaglercraft.client.input.KeyBindHandler;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.EnumChatFormatting;
 
 import java.io.IOException;
@@ -15,7 +15,6 @@ public class BactroModMenuGui extends GuiScreen {
     
     private List<String> features;
     private Map<String, Boolean> featureStates;
-    private int scrollOffset = 0;
     private int selectedIndex = -1;
     private GuiScreen parentScreen;
     
@@ -61,7 +60,7 @@ public class BactroModMenuGui extends GuiScreen {
         
         drawString(this.fontRendererObj, EnumChatFormatting.BOLD + "BactroMod Settings", 
                    SPACING, SPACING, 0xFFFFAA00);
-        drawString(this.fontRendererObj, "Click to toggle features", 
+        drawString(this.fontRendererObj, "Click features to toggle", 
                    SPACING, SPACING + 12, 0xFF999999);
         
         int buttonY = SPACING * 3 + 20;
@@ -87,14 +86,14 @@ public class BactroModMenuGui extends GuiScreen {
             }
         }
         
-        drawString(this.fontRendererObj, EnumChatFormatting.GRAY + "Press RShift to Close", 
+        drawString(this.fontRendererObj, EnumChatFormatting.GRAY + "Press RShift to return to Mod Menu", 
                   SPACING, this.height - 25, 0xFF888888);
     }
     
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
         if (keyCode == 54) {
-            this.mc.displayGuiScreen(parentScreen);
+            KeyBindHandler.onKeyEvent(54, true);
         } else {
             super.keyTyped(typedChar, keyCode);
         }

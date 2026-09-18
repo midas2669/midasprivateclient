@@ -1,0 +1,136 @@
+package eaglercraft.client.gui;
+
+import eaglercraft.client.input.KeyBindHandler;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ModMenuGui extends Screen {
+    private static final int BUTTON_HEIGHT = 20;
+    private static final int BUTTON_WIDTH = 150;
+    private static final int SPACING = 5;
+
+    private final List<String> modNames = new ArrayList<>();
+    private final Map<String, Boolean> modStates = new HashMap<>();
+    private int selectedModIndex = -1;
+    private final Screen parentScreen;
+
+    public ModMenuGui(Screen parentScreen) {
+        super(new StringTextComponent(""));
+        this.parentScreen = parentScreen;
+        initializeMods();
+    }
+
+    private void initializeMods() {
+        modNames.clear();
+
+        modNames.add("Flight");
+        modNames.add("Speed");
+        modNames.add("AutoMine");
+        modNames.add("ESP");
+        modNames.add("AutoClicker");
+        modNames.add("NoFall");
+        modNames.add("Reach");
+        modNames.add("Step");
+        modNames.add("FullBright");
+        modNames.add("Xray");
+        modNames.add("BactroMod");
+        modNames.add("ServerInfo");
+
+        for (String mod : modNames) {
+            if (!modStates.containsKey(mod)) {
+                modStates.put(mod, false);
+            }
+        }
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+        boolean handled = super.mouseClicked(mouseX, mouseY, mouseButton);
+        if (handled) {
+            return true;
+        }
+
+        int buttonX = SPACING;
+        int buttonY = SPACING * 3 + 10;
+
+        for (int i = 0; i < modNames.size(); i++) {
+            String modName = modNames.get(i);
+            int btnY = buttonY + (i * (BUTTON_HEIGHT + SPACING));
+
+            if (mouseX >= buttonX && mouseX <= buttonX + BUTTON_WIDTH &&
+                mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT) {
+
+                if (mouseButton == 0) {
+                    modStates.put(modName, !modStates.getOrDefault(modName, false));
+                    selectedModIndex = i;
+
+                    if (modName.equals("BactroMod")) {
+                        KeyBindHandler.onKeyEvent(54, true);
+                    }
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        this.renderBackground();
+        this.fill(0, 0, this.width, this.height, 0xFF1a1a1a);
+
+        this.drawCenteredString(this.font, TextFormatting.BOLD + "Mod Menu", this.width / 2, SPACING, 0xFFFFAA00);
+        this.drawCenteredString(this.font, "Click to toggle", this.width / 2, SPACING + 10, 0xFF999999);
+
+        int buttonX = SPACING;
+        int buttonY = SPACING * 3 + 10;
+
+        for (int i = 0; i < modNames.size(); i++) {
+            String modName = modNames.get(i);
+            boolean enabled = modStates.getOrDefault(modName, false);
+            int bgColor = enabled ? 0xFF1a4d1a : 0xFF4d1a1a;
+            int textColor = enabled ? 0xFF00FF00 : 0xFFFF5555;
+
+            int btnY = buttonY + (i * (BUTTON_HEIGHT + SPACING));
+            this.fill(buttonX, btnY, buttonX + BUTTON_WIDTH, btnY + BUTTON_HEIGHT, bgColor);
+
+            String status = enabled ? "[ON]" : "[OFF]";
+            this.drawString(this.font, modName + " " + status, buttonX + 5, btnY + 6, textColor);
+
+            if (i == selectedModIndex) {
+                this.fill(buttonX - 2, btnY - 2, buttonX + BUTTON_WIDTH + 2, btnY + BUTTON_HEIGHT + 2, 0xFFFFAA00);
+            }
+        }
+
+        this.drawString(this.font, "RShift: Cycle | Click BactroMod for settings", SPACING, this.height - 20, 0xFFAAAAAA);
+        super.render(mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (keyCode == 54) {
+            KeyBindHandler.onKeyEvent(keyCode, true);
+            return true;
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+}
+

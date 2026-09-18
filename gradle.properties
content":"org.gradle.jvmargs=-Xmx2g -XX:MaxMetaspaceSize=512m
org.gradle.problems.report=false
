@@ -1,0 +1,118 @@
+package eaglercraft.client.gui.screen.menu;
+
+import eaglercraft.client.modules.combat.MaceAttributeSwap;
+import eaglercraft.client.modules.combat.MaceCombatModule;
+import eaglercraft.client.modules.combat.MaceCriticals;
+import eaglercraft.client.modules.combat.MaceHitboxes;
+import eaglercraft.client.viaitems.ViaItemsManager;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.StringTextComponent;
+
+public class ViaItemsModMenuScreen extends Screen {
+    private final Screen parentScreen;
+    private final int buttonSpacing = 25;
+    private int buttonY = 40;
+
+    private Button toggleViaItemsBtn;
+    private Button listItemsBtn;
+    private Button createTestItemBtn;
+
+    private Button toggleMaceCombatBtn;
+    private Button toggleSmashAttackBtn;
+    private Button toggleAttributeSwapBtn;
+    private Button toggleHitboxesBtn;
+
+    public ViaItemsModMenuScreen(Screen parent) {
+        super(new StringTextComponent(""));
+        this.parentScreen = parent;
+    }
+
+    @Override
+    protected void init() {
+        this.buttons.clear();
+        int id = 0;
+
+        this.addButton(toggleViaItemsBtn = new Button(10, buttonY, 200, 20,
+            "ViaItems: " + (ViaItemsManager.isInitialized() ? "ENABLED" : "DISABLED"), button -> {
+                if (ViaItemsManager.isInitialized()) {
+                    ViaItemsManager.shutdown();
+                } else {
+                    ViaItemsManager.init();
+                }
+                this.init();
+            }));
+        buttonY += buttonSpacing;
+
+        this.addButton(listItemsBtn = new Button(10, buttonY, 200, 20, "List ViaItems (260+)", button -> ViaItemsManager.listAllViaItems()));
+        buttonY += buttonSpacing;
+
+        this.addButton(createTestItemBtn = new Button(10, buttonY, 200, 20, "Create Test Mace", button -> {
+            if (ViaItemsManager.isInitialized()) {
+                ViaItemsManager.createViaItem("mace", 1);
+                if (this.mc.player != null) {
+                    this.mc.player.addChatMessage("§6[ViaItems] Created Mace!");
+                }
+            }
+        }));
+        buttonY += buttonSpacing + 10;
+
+        this.addButton(toggleMaceCombatBtn = new Button(10, buttonY, 200, 20,
+            "Mace Combat: " + (MaceCombatModule.isEnabled() ? "ENABLED" : "DISABLED"), button -> {
+                if (MaceCombatModule.isEnabled()) {
+                    MaceCombatModule.disable();
+                } else {
+                    MaceCombatModule.enable();
+                }
+                this.init();
+            }));
+        buttonY += buttonSpacing;
+
+        this.addButton(toggleSmashAttackBtn = new Button(10, buttonY, 200, 20,
+            "Smash Attack: " + (MaceCriticals.isEnabled() ? "ENABLED" : "DISABLED"), button -> {
+                if (MaceCriticals.isEnabled()) {
+                    MaceCriticals.disable();
+                } else {
+                    MaceCriticals.enable();
+                }
+                this.init();
+            }));
+        buttonY += buttonSpacing;
+
+        this.addButton(toggleAttributeSwapBtn = new Button(10, buttonY, 200, 20,
+            "Attribute Swap: " + (MaceAttributeSwap.isMaceSwappingEnabled() ? "ENABLED" : "DISABLED"), button -> {
+                MaceAttributeSwap.setMaceSwappingEnabled(!MaceAttributeSwap.isMaceSwappingEnabled());
+                this.init();
+            }));
+        buttonY += buttonSpacing;
+
+        this.addButton(toggleHitboxesBtn = new Button(10, buttonY, 200, 20, "Mace Hitboxes: ENABLED", button -> {
+            if (MaceHitboxes.isEnabled()) {
+                MaceHitboxes.disable();
+            } else {
+                MaceHitboxes.enable();
+            }
+            this.init();
+        }));
+        buttonY += buttonSpacing + 10;
+
+        this.addButton(new Button(10, this.height - 30, 200, 20, "Back", button -> this.mc.displayGuiScreen(this.parentScreen)));
+    }
+
+    @Override
+    public void render(int x, int y, float partialTicks) {
+        this.renderBackground();
+        this.drawCenteredString(this.font, "ViaItems & Mace Combat", this.width / 2, 10, 0xFFFFFF);
+
+        this.drawString(this.font, "ViaItems", 10, buttonY - 60, 0xABEDFF);
+        this.drawString(this.font, "Mace Combat", 10, buttonY - 15, 0xFFABED);
+
+        super.render(x, y, partialTicks);
+    }
+
+    @Override
+    public boolean isPauseScreen() {
+        return true;
+    }
+}
+

@@ -1,106 +1,90 @@
 package eaglercraft.client.gui;
 
 import eaglercraft.client.input.KeyBindHandler;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class BactroModMenuGui extends GuiScreen {
+public class BactroModMenuGui extends Screen {
     private static final int BUTTON_HEIGHT = 22;
     private static final int BUTTON_WIDTH = 160;
     private static final int SPACING = 8;
-    
-    private List<String> features;
-    private Map<String, Boolean> featureStates;
+    private final List<String> features;
+    private final Map<String, Boolean> featureStates;
     private int selectedIndex = -1;
-    private GuiScreen parentScreen;
-    
-    public BactroModMenuGui(GuiScreen parentScreen) {
+    private final Screen parentScreen;
+
+    public BactroModMenuGui(Screen parentScreen) {
+        super(new StringTextComponent(""));
         this.parentScreen = parentScreen;
         this.features = EaglerBactroMod.getAvailableFeatures();
         this.featureStates = EaglerBactroMod.getAllFeatures();
     }
-    
+
     @Override
-    public void initGui() {
-        super.initGui();
+    protected void init() {
+        super.init();
     }
-    
+
     @Override
-    protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        super.mouseClicked(mouseX, mouseY, mouseButton);
-        
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+        if (super.mouseClicked(mouseX, mouseY, mouseButton)) {
+            return true;
+        }
         int buttonY = SPACING * 3 + 20;
-        
         for (int i = 0; i < features.size(); i++) {
             String feature = features.get(i);
-            int btnX = SPACING;
-            int btnY = buttonY + (i * (BUTTON_HEIGHT + SPACING));
-            
-            if (mouseX >= btnX && mouseX <= btnX + BUTTON_WIDTH && 
-                mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT) {
-                
-                if (mouseButton == 0) {
-                    boolean current = featureStates.get(feature);
-                    EaglerBactroMod.setFeatureEnabled(feature, !current);
-                    featureStates.put(feature, !current);
-                    selectedIndex = i;
-                }
+            int btnY = buttonY + i * (BUTTON_HEIGHT + SPACING);
+            if (mouseButton == 0 && mouseX >= SPACING && mouseX <= SPACING + BUTTON_WIDTH
+                    && mouseY >= btnY && mouseY <= btnY + BUTTON_HEIGHT) {
+                boolean enabled = featureStates.getOrDefault(feature, false);
+                EaglerBactroMod.setFeatureEnabled(feature, !enabled);
+                featureStates.put(feature, !enabled);
+                selectedIndex = i;
+                return true;
             }
         }
+        return false;
     }
-    
+
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
-        drawRect(0, 0, this.width, this.height, 0xFF0d0d0d);
-        
-        drawString(this.fontRendererObj, EnumChatFormatting.BOLD + "BactroMod Settings", 
-                   SPACING, SPACING, 0xFFFFAA00);
-        drawString(this.fontRendererObj, "Click features to toggle", 
-                   SPACING, SPACING + 12, 0xFF999999);
-        
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        renderBackground();
+        fill(0, 0, width, height, 0xFF0d0d0d);
+        drawString(font, TextFormatting.BOLD + "BactroMod Settings", SPACING, SPACING, 0xFFFFAA00);
+        drawString(font, "Click features to toggle", SPACING, SPACING + 12, 0xFF999999);
         int buttonY = SPACING * 3 + 20;
-        
         for (int i = 0; i < features.size(); i++) {
             String feature = features.get(i);
-            boolean enabled = featureStates.get(feature);
-            
-            int btnX = SPACING;
-            int btnY = buttonY + (i * (BUTTON_HEIGHT + SPACING));
-            int bgColor = enabled ? 0xFF1a4d1a : 0xFF4d1a1a;
-            int textColor = enabled ? 0xFF00FF00 : 0xFFFF4444;
-            
-            drawRect(btnX, btnY, btnX + BUTTON_WIDTH, btnY + BUTTON_HEIGHT, bgColor);
-            
-            String status = enabled ? "[ON]" : "[OFF]";
-            drawString(this.fontRendererObj, feature + " " + status, 
-                      btnX + 8, btnY + 7, textColor);
-            
+            boolean enabled = featureStates.getOrDefault(feature, false);
+            int btnY = buttonY + i * (BUTTON_HEIGHT + SPACING);
+            fill(SPACING, btnY, SPACING + BUTTON_WIDTH, btnY + BUTTON_HEIGHT,
+                    enabled ? 0xFF1a4d1a : 0xFF4d1a1a);
+            drawString(font, feature + (enabled ? " [ON]" : " [OFF]"), SPACING + 8, btnY + 7,
+                    enabled ? 0xFF00FF00 : 0xFFFF4444);
             if (i == selectedIndex) {
-                drawRect(btnX - 2, btnY - 2, btnX + BUTTON_WIDTH + 2, 
+                fill(SPACING - 2, btnY - 2, SPACING + BUTTON_WIDTH + 2,
                         btnY + BUTTON_HEIGHT + 2, 0xFFFFAA00);
             }
         }
-        
-        drawString(this.fontRendererObj, EnumChatFormatting.GRAY + "Press RShift to return to Mod Menu", 
-                  SPACING, this.height - 25, 0xFF888888);
+        drawString(font, TextFormatting.GRAY + "Press RShift to return to Mod Menu", SPACING, height - 25, 0xFF888888);
+        super.render(mouseX, mouseY, partialTicks);
     }
-    
+
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (keyCode == 54) {
-            KeyBindHandler.onKeyEvent(54, true);
-        } else {
-            super.keyTyped(typedChar, keyCode);
+            KeyBindHandler.onKeyEvent(keyCode, true);
+            return true;
         }
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
-    
+
     @Override
-    public boolean doesGuiPauseGame() {
+    public boolean isPauseScreen() {
         return false;
     }
 }

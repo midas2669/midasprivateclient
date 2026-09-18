@@ -1,143 +1,79 @@
 package eaglercraft.client.gui.screen.menu;
 
-import eaglercraft.client.viaitems.ViaItemsManager;
-import eaglercraft.client.modules.combat.MaceCombatModule;
 import eaglercraft.client.modules.combat.MaceAttributeSwap;
+import eaglercraft.client.modules.combat.MaceCombatModule;
 import eaglercraft.client.modules.combat.MaceCriticals;
 import eaglercraft.client.modules.combat.MaceHitboxes;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
+import eaglercraft.client.viaitems.ViaItemsManager;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.StringTextComponent;
 
-/**
- * ModMenu Integration Screen
- * Displays ViaItems and Mace Combat options
- */
-public class ViaItemsModMenuScreen extends GuiScreen {
-    private GuiScreen parentScreen;
-    private int buttonSpacing = 25;
+public class ViaItemsModMenuScreen extends Screen {
+    private final Screen parentScreen;
+    private final int buttonSpacing = 25;
     private int buttonY = 40;
-    
-    // ViaItems section
-    private GuiButton toggleViaItemsBtn;
-    private GuiButton listItemsBtn;
-    private GuiButton createTestItemBtn;
-    
-    // Mace Combat section
-    private GuiButton toggleMaceCombatBtn;
-    private GuiButton toggleSmashAttackBtn;
-    private GuiButton toggleAttributeSwapBtn;
-    private GuiButton toggleHitboxesBtn;
-    
-    public ViaItemsModMenuScreen(GuiScreen parent) {
+
+    public ViaItemsModMenuScreen(Screen parent) {
+        super(new StringTextComponent(""));
         this.parentScreen = parent;
     }
-    
+
     @Override
-    public void initGui() {
-        this.buttonList.clear();
-        
-        // ViaItems Buttons
-        int id = 0;
-        this.buttonList.add(toggleViaItemsBtn = new GuiButton(id++, 10, buttonY, 200, 20, 
-            "ViaItems: " + (ViaItemsManager.isInitialized() ? "ENABLED" : "DISABLED")));
+    protected void init() {
+        buttons.clear();
+        addButton(new Button(10, buttonY, 200, 20,
+                "ViaItems: " + (ViaItemsManager.isInitialized() ? "ENABLED" : "DISABLED"), button -> {
+            if (ViaItemsManager.isInitialized()) ViaItemsManager.shutdown(); else ViaItemsManager.init();
+            init();
+        }));
         buttonY += buttonSpacing;
-        
-        this.buttonList.add(listItemsBtn = new GuiButton(id++, 10, buttonY, 200, 20, "List ViaItems (260+)"));
+        addButton(new Button(10, buttonY, 200, 20, "List ViaItems (260+)", button -> ViaItemsManager.listAllViaItems()));
         buttonY += buttonSpacing;
-        
-        this.buttonList.add(createTestItemBtn = new GuiButton(id++, 10, buttonY, 200, 20, "Create Test Mace"));
-        buttonY += buttonSpacing + 10;
-        
-        // Mace Combat Buttons
-        this.buttonList.add(toggleMaceCombatBtn = new GuiButton(id++, 10, buttonY, 200, 20,
-            "Mace Combat: " + (MaceCombatModule.isEnabled() ? "ENABLED" : "DISABLED")));
-        buttonY += buttonSpacing;
-        
-        this.buttonList.add(toggleSmashAttackBtn = new GuiButton(id++, 10, buttonY, 200, 20,
-            "Smash Attack: " + (MaceCriticals.isEnabled() ? "ENABLED" : "DISABLED")));
-        buttonY += buttonSpacing;
-        
-        this.buttonList.add(toggleAttributeSwapBtn = new GuiButton(id++, 10, buttonY, 200, 20,
-            "Attribute Swap: " + (MaceAttributeSwap.isMaceSwappingEnabled() ? "ENABLED" : "DISABLED")));
-        buttonY += buttonSpacing;
-        
-        this.buttonList.add(toggleHitboxesBtn = new GuiButton(id++, 10, buttonY, 200, 20,
-            "Mace Hitboxes: ENABLED"));
-        buttonY += buttonSpacing + 10;
-        
-        // Back button
-        this.buttonList.add(new GuiButton(id++, 10, this.height - 30, 200, 20, "Back"));
-    }
-    
-    @Override
-    protected void actionPerformed(GuiButton button) {
-        if (button == toggleViaItemsBtn) {
-            if (ViaItemsManager.isInitialized()) {
-                ViaItemsManager.shutdown();
-            } else {
-                ViaItemsManager.init();
-            }
-            this.initGui();
-        }
-        else if (button == listItemsBtn) {
-            ViaItemsManager.listAllViaItems();
-        }
-        else if (button == createTestItemBtn) {
+        addButton(new Button(10, buttonY, 200, 20, "Create Test Mace", button -> {
             if (ViaItemsManager.isInitialized()) {
                 ViaItemsManager.createViaItem("mace", 1);
-                this.mc.player.addChatMessage("\u00a76[ViaItems] Created Mace!");
+                if (mc.player != null) mc.player.addChatMessage("§6[ViaItems] Created Mace!");
             }
-        }
-        else if (button == toggleMaceCombatBtn) {
-            if (MaceCombatModule.isEnabled()) {
-                MaceCombatModule.disable();
-            } else {
-                MaceCombatModule.enable();
-            }
-            this.initGui();
-        }
-        else if (button == toggleSmashAttackBtn) {
-            if (MaceCriticals.isEnabled()) {
-                MaceCriticals.disable();
-            } else {
-                MaceCriticals.enable();
-            }
-            this.initGui();
-        }
-        else if (button == toggleAttributeSwapBtn) {
-            boolean current = MaceAttributeSwap.isMaceSwappingEnabled();
-            MaceAttributeSwap.setMaceSwappingEnabled(!current);
-            this.initGui();
-        }
-        else if (button == toggleHitboxesBtn) {
-            boolean current = MaceHitboxes.isEnabled();
-            if (current) {
-                MaceHitboxes.disable();
-            } else {
-                MaceHitboxes.enable();
-            }
-            this.initGui();
-        }
-        else if (button.id == this.buttonList.size() - 1) {
-            // Back button
-            this.mc.displayGuiScreen(this.parentScreen);
-        }
+        }));
+        buttonY += buttonSpacing + 10;
+        addButton(new Button(10, buttonY, 200, 20,
+                "Mace Combat: " + (MaceCombatModule.isEnabled() ? "ENABLED" : "DISABLED"), button -> {
+            if (MaceCombatModule.isEnabled()) MaceCombatModule.disable(); else MaceCombatModule.enable();
+            init();
+        }));
+        buttonY += buttonSpacing;
+        addButton(new Button(10, buttonY, 200, 20,
+                "Smash Attack: " + (MaceCriticals.isEnabled() ? "ENABLED" : "DISABLED"), button -> {
+            if (MaceCriticals.isEnabled()) MaceCriticals.disable(); else MaceCriticals.enable();
+            init();
+        }));
+        buttonY += buttonSpacing;
+        addButton(new Button(10, buttonY, 200, 20,
+                "Attribute Swap: " + (MaceAttributeSwap.isMaceSwappingEnabled() ? "ENABLED" : "DISABLED"), button -> {
+            MaceAttributeSwap.setMaceSwappingEnabled(!MaceAttributeSwap.isMaceSwappingEnabled());
+            init();
+        }));
+        buttonY += buttonSpacing;
+        addButton(new Button(10, buttonY, 200, 20, "Mace Hitboxes: ENABLED", button -> {
+            if (MaceHitboxes.isEnabled()) MaceHitboxes.disable(); else MaceHitboxes.enable();
+            init();
+        }));
+        buttonY += buttonSpacing + 10;
+        addButton(new Button(10, height - 30, 200, 20, "Back", button -> mc.displayGuiScreen(parentScreen)));
     }
-    
+
     @Override
-    public void drawScreen(int x, int y, float f) {
-        this.drawDefaultBackground();
-        this.drawCenteredString(this.fontRendererObj, "ViaItems & Mace Combat", this.width / 2, 10, 0xFFFFFF);
-        
-        this.drawString(this.fontRendererObj, "ViaItems", 10, buttonY - 60, 0xABEDFF);
-        this.drawString(this.fontRendererObj, "Mace Combat", 10, buttonY - 15, 0xFFABED);
-        
-        super.drawScreen(x, y, f);
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        renderBackground();
+        drawCenteredString(font, "ViaItems & Mace Combat", width / 2, 10, 0xFFFFFF);
+        drawString(font, "ViaItems", 10, buttonY - 60, 0xABEDFF);
+        drawString(font, "Mace Combat", 10, buttonY - 15, 0xFFABED);
+        super.render(mouseX, mouseY, partialTicks);
     }
-    
+
     @Override
-    public boolean doesGuiPauseGame() {
+    public boolean isPauseScreen() {
         return true;
     }
 }
